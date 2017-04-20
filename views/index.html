@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Aurelius - The Marcus Aurelius API</title>
+		<link href="https://fonts.googleapis.com/css?family=Roboto|Roboto:light|Roboto+Slab" rel="stylesheet">
+		<style type="text/css">
+			body {
+				background-color: #d7e0ee;
+				margin: 0;
+			}
+
+			.navbar {
+				padding: 20px 30px;
+				margin: auto;
+				max-width: 1300px;
+			}
+
+			.navbar .logo {
+				margin: 0;
+				color: #677396;
+				font-family: 'Roboto Slab', serif;
+				font-weight: bold;
+				font-size: 30px;
+			}
+
+			.main-content {
+				min-height: 600px
+				display: -webkit-box;
+				display: -webkit-flex;
+				display: -mox-flex;
+				display: -ms-flexbox;
+				display: flex;
+				-webkit-box-pack: center;
+				-ms-flex-pack: center;
+				-webkit-justify-content: center;
+				-moz-justify-content: center;
+				justify-content: center;
+			}
+
+			.main-content .marcus {
+				width: 280px;
+				height: 450px;
+				margin: 50px;
+				-ms-flex-item-align: center;
+				-webkit-align-self: center;
+				-moz-align-self: center;
+				align-self: center;
+			}
+
+			.main-content .quote-container {
+				margin: 50px;
+				max-width: 800px;
+				color: #3e465b;
+				font-family: 'Roboto Light', sans-serif;
+				font-weight: 200;
+				font-size: 25px;
+				line-height: 35px;
+				-ms-flex-item-align: center;
+				-webkit-align-self: center;
+				-moz-align-self: center;
+				align-self: center;
+			}
+
+			.main-content .quote-container .quote {
+				margin-bottom: 40px;
+				color: #677396;
+			}
+
+			.main-content .quote-container .quote-source {
+				margin-bottom: 40px;
+				display: -webkit-box;
+				display: -webkit-flex;
+				display: -mox-flex;
+				display: -ms-flexbox;
+				display: flex;
+			}
+
+			.main-content .quote-container .quote-source .tag {
+				padding: 8px 10px;
+				margin: 0 10px 0 0;
+				border-radius: 5px;
+				font-size: 16px;
+				line-height: 17px;
+				text-transform: uppercase;
+				color: #b6c4d9;
+				background-color: #677396;
+				text-align: center;
+				font-weight: bold;
+				font-family: 'Roboto', 'sans-serif';
+			}
+
+
+			.main-content .quote-container .interaction-instructions {
+				font-size: 18px;
+				color: #677396;
+				font-family: 'Roboto', 'sans-serif';
+			}
+		</style>
+
+	</head>
+	<body>
+		<div class="navbar">
+			<h3 class="logo">
+				Aurelius
+			</h3>
+		</div>
+		<div class="main-content">
+			<img class="marcus" src="/assets/images/marcus-eyes-open.png" alt="Marcus Aurelius Cartoon Face" width="280" height="450">
+			<div class="quote-container">
+				<div class="quote">
+					From my grandfather Verus I learned good morals and the government of my temper.
+				</div>
+				<div class="quote-source">
+					<div class="tag title">Meditations</div>
+					<div class="tag book">Book 1</div>
+					<div class="tag section">Section 1</div>
+				</div>
+				<div class="interaction-instructions">
+					Press <strong>spacebar</strong> for a new quote.
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

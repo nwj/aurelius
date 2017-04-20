@@ -5,15 +5,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
+	"html/template"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
+	"time"
 )
 
 func main() {
 	sectionData := initSectionData()
 	router := httprouter.New()
-	router.GET("/rand", ContextDecorator(RandomHandler, &sectionData))
+	router.ServeFiles("/assets/*filepath", http.Dir("assets"))
+	router.GET("/", IndexHandler)
+	router.GET("/rand", ContextDecorator(RandomHandler, sectionData))
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
@@ -41,13 +46,30 @@ func initSectionData() []section {
 	return sectionData
 }
 
-func ContextDecorator(h httprouter.Handle, sectionData *[]section) httprouter.Handle {
+func ContextDecorator(h httprouter.Handle, sectionData []section) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		ctx := context.WithValue(r.Context(), "sectionData", sectionData)
 		h(w, r.WithContext(ctx), ps)
 	}
 }
 
+func IndexHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	t, err := template.ParseFiles("views/index.html")
+	if err != nil {
+		panic(err)
+	}
+	t.Execute(w, nil)
+}
+
 func RandomHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, "TESTING")
+	sectionData := r.Context().Value("sectionData").([]section)
+
+	seed := rand.NewSource(time.Now().UnixNano())
+	rng := rand.New(seed)
+	random := rng.Intn(len(sectionData))
+	jsonSection, err := json.MarshalIndent(sectionData[random], "", "    ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprint(w, string(jsonSection))
 }

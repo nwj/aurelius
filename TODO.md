@@ -1,0 +1,10 @@
+- Update Readme
+- FAQ page and nav
+- API Documentation Page and nav
+- validation for maxLength param
+- endpoint for querying by book and section
+- endpoint for getting successive quotes from a specified date
+- mobile styles
+- add github attribution link
+- clean up source text further (replace dost, art)
+- add backup css for border radius

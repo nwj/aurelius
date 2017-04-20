@@ -10,8 +10,8 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	"time"
 	"strconv"
+	"time"
 )
 
 func main() {
@@ -19,7 +19,8 @@ func main() {
 	router := httprouter.New()
 	router.ServeFiles("/assets/*filepath", http.Dir("assets"))
 	router.GET("/", ContextDecorator(IndexHandler, sectionData))
-	router.GET("/rand", ContextDecorator(RandomHandler, sectionData))
+	router.GET("/meditations/:bookIndex/:sectionIndex", ContextDecorator(MeditationsHandler, sectionData))
+	router.GET("/random", ContextDecorator(RandomHandler, sectionData))
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
@@ -50,7 +51,7 @@ func initSectionData() []section {
 func getRandomSection(sectionData []section, maxLength int) section {
 	if maxLength >= 0 {
 		var filteredSections []section
-		for _, s := range(sectionData) {
+		for _, s := range sectionData {
 			if s.Length <= maxLength {
 				filteredSections = append(filteredSections, s)
 			}
@@ -81,7 +82,34 @@ func IndexHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	t.Execute(w, &section)
 }
 
-func RandomHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func MeditationsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	sectionData := r.Context().Value("sectionData").([]section)
+	bookIndex, err := strconv.Atoi(ps.ByName("bookIndex"))
+	if err != nil {
+		panic(err)
+	}
+	sectionIndex, err := strconv.Atoi(ps.ByName("sectionIndex"))
+	if err != nil {
+		panic(err)
+	}
+
+	var foundSection section
+	for _, s := range sectionData {
+		if s.Book == bookIndex && s.Section == sectionIndex {
+			foundSection = s
+			break
+		}
+	}
+
+	jsonSection, err := json.MarshalIndent(foundSection, "", "    ")
+	if err != nil {
+		panic(err)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprint(w, string(jsonSection))
+}
+
+func RandomHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	maxLength := -1
 	if len(r.URL.Query()["maxLength"]) == 1 {
 		maxLengthQueryParam, err := strconv.Atoi(r.URL.Query()["maxLength"][0])

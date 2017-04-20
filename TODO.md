@@ -1,8 +1,7 @@
 - Update Readme
 - FAQ page and nav
 - API Documentation Page and nav
-- validation for maxLength param
-- endpoint for querying by book and section
+- strengthen validations everywhere
 - endpoint for getting successive quotes from a specified date
 - mobile styles
 - add github attribution link

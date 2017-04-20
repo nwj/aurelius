@@ -6,4 +6,3 @@
 - endpoint for getting successive quotes from a specified date
 - mobile styles
 - add github attribution link
-- add backup css for border radius

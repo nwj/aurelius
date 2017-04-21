@@ -19,6 +19,7 @@ func main() {
 	router := httprouter.New()
 	router.ServeFiles("/assets/*filepath", http.Dir("assets"))
 	router.GET("/", ContextDecorator(IndexHandler, sectionData))
+	router.GET("/faq", FaqHandler)
 	router.GET("/meditations/:bookIndex/:sectionIndex", ContextDecorator(MeditationsHandler, sectionData))
 	router.GET("/random", ContextDecorator(RandomHandler, sectionData))
 
@@ -80,6 +81,14 @@ func IndexHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		panic(err)
 	}
 	t.Execute(w, &section)
+}
+
+func FaqHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	t, err := template.ParseFiles("views/faq.html")
+	if err != nil {
+		panic(err)
+	}
+	t.Execute(w, nil)
 }
 
 func MeditationsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {

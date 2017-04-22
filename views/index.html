@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<title>Aurelius - The Marcus Aurelius API</title>
+		<meta name="viewport" content="width=device-width" />
 		<link href="https://fonts.googleapis.com/css?family=Roboto:light,regular,medium|Roboto+Slab" rel="stylesheet" type="text/css">
 		<style type="text/css">
 			body {
@@ -23,6 +24,10 @@
 				-webkit-justify-content: space-between;
 				-moz-justify-content: space-between;
 				justify-content: space-between;
+			}
+
+			.navbar.mobile {
+				display: none;
 			}
 
 			.navbar .logo {
@@ -67,7 +72,7 @@
 			}
 
 			.main-content {
-				min-height: 600px
+				min-height: 600px;
 				display: -webkit-box;
 				display: -webkit-flex;
 				display: -mox-flex;
@@ -92,7 +97,7 @@
 
 			.main-content .quote-container {
 				margin: 50px 80px 50px 50px;
-				width: 800px;
+				width: 650px;
 				color: #3e465b;
 				-ms-flex-item-align: center;
 				-webkit-align-self: center;
@@ -141,6 +146,14 @@
 				font-weight: 200;
 			}
 
+			.main-content .quote-container .interaction-instructions.desktop {
+				display: block;
+			}
+
+			.main-content .quote-container .interaction-instructions.mobile {
+				display: none;
+			}
+
 			.attribution {
 				position: fixed;
 				bottom: 20px;
@@ -159,21 +172,108 @@
 			.attribution a:hover {
 				color: #3e465b;
 			}
+
+			@media only screen and (max-width: 850px) {
+				body {
+					padding: 20px;
+				}
+
+				.navbar {
+					margin: 0 0 20px 0;
+					padding: 0;
+					-webkit-box-pack: center;
+					-ms-flex-pack: center;
+					-webkit-justify-content: center;
+					-moz-justify-content: center;
+					justify-content: center;
+				}
+
+				.navbar .links {
+					display: none;
+				}
+
+				.navbar.mobile {
+					display: -webkit-box;
+					display: -webkit-flex;
+					display: -mox-flex;
+					display: -ms-flexbox;
+					display: flex;
+					border-top: 1px solid #677396;
+					padding-top: 20px;
+				}
+
+				.navbar.mobile a {
+					font-family: 'Roboto', sans-serif;
+					font-weight: 500;
+					font-size: 16px;
+					text-decoration: none;
+					color: #677396;
+					display: block;
+					text-transform: uppercase;
+					margin: 0 5px;
+				}
+	
+				.main-content {
+					-webkit-box-direction: normal;
+					-webkit-box-orient: vertical;
+					-webkit-flex-direction: column;
+					-moz-flex-direction: column;
+					-ms-flex-direction: column:
+					flex-direction: column;
+					min-height: initial;
+					margin-bottom: 20px;
+				}
+				
+				.main-content .marcus {
+					margin: 0 0 20px 0;
+					width: 168px;
+					height: 270px;
+				}
+
+				.main-content .quote-container {
+					margin: 0 0 20px 0;
+					width: initial;
+					text-align: center;
+				}
+
+				.main-content .quote-container .quote {
+					font-size: 20px;
+					line-height: 30px;
+					margin: 0 0 20px 0;
+				}
+
+				.main-content .quote-container .quote-source {
+					-webkit-box-pack: center;
+					-ms-flex-pack: center;
+					-webkit-justify-content: center;
+					-moz-justify-content: center;
+					justify-content: center;
+					margin: 0 0 20px 0;
+				}
+
+				.main-content .quote-container .interaction-instructions.desktop {
+					display: none;
+				}
+
+				.main-content .quote-container .interaction-instructions.mobile {
+					display: block;
+				}
+
+				.attribution {
+					position: initial;
+					text-align: center;
+				}
+			}
+
 		</style>
 
 	</head>
 	<body>
 		<div class="navbar">
-			<a href="/" class="logo">
-				Aurelius
-			</a>
+			<a href="/" class="logo"> Aurelius </a>
 			<div class="links">
-				<a href="/faq">
-					FAQ
-				</a>
-				<a href="documentation">
-					Documentation
-				</a>
+				<a href="/faq"> FAQ </a>
+				<a href="documentation"> Documentation </a>
 			</div>
 		</div>
 		<div class="main-content">
@@ -188,10 +288,17 @@
 					<div class="tag book">Book {{.Book}}</div>
 					<div class="tag section">Section {{.Section}}</div>
 				</div>
-				<div class="interaction-instructions">
+				<div class="interaction-instructions desktop">
 					Press <strong>spacebar</strong> for a new quote.
 				</div>
+				<div class="interaction-instructions mobile">
+					Press <strong>here</strong> for a new quote.
+				</div>
 			</div>
+		</div>
+		<div class="navbar mobile">
+			<a href="/faq">FAQ</a>
+			<a href="documentation">Documentation</a>
 		</div>
 		<div class="attribution">
 			<a href="https://www.github.com/nwj/aurelius">Code by NWJ</a>
@@ -201,21 +308,27 @@
 
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" type="text/javascript"></script>
 		<script type="text/javascript">
+			fetchRandomQuote = function() {
+				$.ajax({
+					url: "/random",
+					method: "GET",
+					datatype: "json",
+					contentType: "application/json",
+					data: $.param({maxLength: 350})
+				}).done(function(data) {
+					$(".quote").text(data.text);
+					$(".tag.book").text("Book " + data.book);
+					$(".tag.section").text("Section " + data.section);
+				});
+			}
 			$("body").keyup(function(e) {
 				// Spacebar keyCode is 32
 				if (e.keyCode == 32) {
-					$.ajax({
-						url: "/random",
-						method: "GET",
-						datatype: "json",
-						contentType: "application/json",
-						data: $.param({maxLength: 350})
-					}).done(function(data) {
-						$(".quote").text(data.text);
-						$(".tag.book").text("Book " + data.book);
-						$(".tag.section").text("Section " + data.section);
-					});
+					fetchRandomQuote();
 				}
+			});
+			$(".interaction-instructions.mobile").click(function(e) {
+				fetchRandomQuote();
 			});
 		</script>
 		<script type="text/javascript">

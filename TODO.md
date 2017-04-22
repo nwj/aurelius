@@ -2,4 +2,4 @@
 - API Documentation Page and nav
 - strengthen validations everywhere
 - endpoint for getting successive quotes from a specified date
-- mobile styles
+- refactor css

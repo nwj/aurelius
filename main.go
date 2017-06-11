@@ -12,10 +12,14 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"errors"
 )
 
 func main() {
-	sectionData := initSectionData()
+	sectionData, err := initSectionData("data/meditations.json")
+	if err != nil {
+		panic(err)
+	}
 	router := httprouter.New()
 	router.ServeFiles("/assets/*filepath", http.Dir("assets"))
 	router.GET("/", ContextDecorator(IndexHandler, sectionData))
@@ -33,24 +37,28 @@ type section struct {
 	Length  int    `json:"length"`
 }
 
-func initSectionData() []section {
+func initSectionData(pathToSectionData string) ([]section, error) {
 	var sectionData []section
 
-	sectionDataJson, err := ioutil.ReadFile("data/meditations.json")
+	sectionDataJson, err := ioutil.ReadFile(pathToSectionData)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	err = json.Unmarshal(sectionDataJson, &sectionData)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return sectionData
+	return sectionData, nil
 }
 
-func getRandomSection(sectionData []section, maxLength int) section {
-	if maxLength >= 0 {
+func getRandomSection(sectionData []section, maxLength int) (section, error) {
+	if maxLength <= 0 && maxLength != -1 {
+		return section{}, errors.New("maxLength must be greater than 0")
+	}
+
+	if maxLength != -1 {
 		var filteredSections []section
 		for _, s := range sectionData {
 			if s.Length <= maxLength {
@@ -58,12 +66,15 @@ func getRandomSection(sectionData []section, maxLength int) section {
 			}
 		}
 		sectionData = filteredSections
+		if len(sectionData) == 0 {
+			return section{}, errors.New("No sections shorter than maxLength")
+		}
 	}
 
 	seed := rand.NewSource(time.Now().UnixNano())
 	rng := rand.New(seed)
 	random := rng.Intn(len(sectionData))
-	return sectionData[random]
+	return sectionData[random], nil
 }
 
 func ContextDecorator(h httprouter.Handle, sectionData []section) httprouter.Handle {
@@ -75,10 +86,17 @@ func ContextDecorator(h httprouter.Handle, sectionData []section) httprouter.Han
 
 func IndexHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	sectionData := r.Context().Value("sectionData").([]section)
-	section := getRandomSection(sectionData, 350)
+	section, err := getRandomSection(sectionData, 350)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, err)
+		return
+	}
 	t, err := template.ParseFiles("views/index.html")
 	if err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, err)
+		return
 	}
 	t.Execute(w, &section)
 }
@@ -86,7 +104,9 @@ func IndexHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func FaqHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	t, err := template.ParseFiles("views/faq.html")
 	if err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, err)
+		return
 	}
 	t.Execute(w, nil)
 }
@@ -95,11 +115,15 @@ func MeditationsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Pa
 	sectionData := r.Context().Value("sectionData").([]section)
 	bookIndex, err := strconv.Atoi(ps.ByName("bookIndex"))
 	if err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Invalid book parameter")
+		return
 	}
 	sectionIndex, err := strconv.Atoi(ps.ByName("sectionIndex"))
 	if err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Invalid section parameter")
+		return
 	}
 
 	var foundSection section
@@ -110,9 +134,17 @@ func MeditationsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Pa
 		}
 	}
 
+	if foundSection.Section == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprint(w, "404 meditation not found")
+		return
+	}
+
 	jsonSection, err := json.MarshalIndent(foundSection, "", "    ")
 	if err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, err)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprint(w, string(jsonSection))
@@ -123,15 +155,25 @@ func RandomHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) 
 	if len(r.URL.Query()["maxLength"]) == 1 {
 		maxLengthQueryParam, err := strconv.Atoi(r.URL.Query()["maxLength"][0])
 		if err != nil {
-			panic(err)
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, "Invalid maxLength parameter")
+			return
 		}
 		maxLength = maxLengthQueryParam
 	}
 
 	sectionData := r.Context().Value("sectionData").([]section)
-	jsonSection, err := json.MarshalIndent(getRandomSection(sectionData, maxLength), "", "    ")
+	randomSection, err := getRandomSection(sectionData, maxLength)
 	if err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, err)
+		return
+	}
+	jsonSection, err := json.MarshalIndent(randomSection, "", "    ")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, err)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprint(w, string(jsonSection))
